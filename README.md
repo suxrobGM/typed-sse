@@ -40,8 +40,8 @@ You can define your named typed events in a shared file, for example `src/types/
 
 ```ts
 export type SSEvents = {
-  connected: { clientId: string; userId?: string | null };
-  notification: { message: string; timestamp: string };
+  connected: {clientId: string; userId?: string | null};
+  notification: {message: string; timestamp: string};
 };
 ```
 
@@ -50,9 +50,9 @@ export type SSEvents = {
 You can implement the SSE route in a Next.js application like this:
 
 ```ts
-import { NextRequest, NextResponse } from "next/server";
-import { SSEManager } from "@/lib/sse/server";
-import type { SSEvents } from "@/types/events";
+import {NextRequest, NextResponse} from "next/server";
+import {SSEManager} from "@/lib/sse/server";
+import type {SSEvents} from "@/types/events";
 
 const sseHeaders = {
   "Content-Type": "text/event-stream",
@@ -64,21 +64,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const userId = req.nextUrl.searchParams.get("user_id");
 
   // 1) Register client
-  const client = SSEManager.default.createClient<SSEvents>({ userId });
+  const client = SSEManager.default.createClient<SSEvents>();
   client.startHeartbeat(); // keep proxies alive
 
   // 2) Handshake event
   queueMicrotask(() =>
     client.send({
       event: "connected",
-      data: { clientId: client.id, userId },
-    }),
+      data: {clientId: client.id, userId},
+    })
   );
 
   // 3) Cleanup on disconnect
-  req.signal.addEventListener("abort", () =>
-    SSEManager.default.removeClient(client.id),
-  );
+  req.signal.addEventListener("abort", () => SSEManager.default.removeClient(client.id));
 
   return new NextResponse(client.readable, {
     status: 200,
@@ -173,9 +171,9 @@ Each `SSEClient` represents a single connection (browser tab/device) and provide
 Example client registration in a Next.js API route:
 
 ```ts
-import { NextResponse, type NextRequest } from "next/server";
-import { SSEManager } from "@/lib/sse/server";
-import type { SSEvents } from "@/types/events";
+import {type NextRequest, NextResponse} from "next/server";
+import {SSEManager} from "@/lib/sse/server";
+import type {SSEvents} from "@/types/events";
 
 const sseHeaders = {
   "Content-Type": "text/event-stream",
@@ -193,7 +191,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const userId = searchParams.get("user_id"); // optional user ID
 
   // Register and start heartbeat
-  const client = SSEManager.default.createClient<SSEvents>({ userId });
+  const client = SSEManager.default.createClient<SSEvents>({userId});
   client.startHeartbeat();
 
   console.log(`SSE client connected: ${client.id}, user ID: ${userId}`);
@@ -201,7 +199,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // Send the handshake event after the response is sent
   queueMicrotask(() => {
     client
-      .send({ event: "connected", data: { clientId: client.id, userId } })
+      .send({event: "connected", data: {clientId: client.id, userId}})
       .then(() => console.log(`SSE handshake sent for client: ${client.id}`))
       .catch((err) => console.error("Handshake send failed:", err));
   });
@@ -244,12 +242,12 @@ await SSEManager.default.sendToClient<MyEvents>(clientId, "notification", { ... 
 
 ### Lifecycle helpers
 
-| Method                            | Purpose                                      |
-| --------------------------------- | -------------------------------------------- |
-| `createClient(opts?)`             | returns `SSEClient`; automatically registers |
-| `removeClient(id)`                | cleanup & closes stream                      |
-| `startHeartbeat(clientId, ms?)`   | per-connection keep-alive (defaults 15 s)    |
-| `clientsCount()` / `usersCount()` | metrics for dashboards                       |
+| Method                          | Purpose                                      |
+| ------------------------------- | -------------------------------------------- |
+| `createClient(opts?)`           | returns `SSEClient`; automatically registers |
+| `removeClient(id)`              | cleanup & closes stream                      |
+| `startHeartbeat(clientId, ms?)` | per-connection keep-alive (defaults 15 s)    |
+| `clientsCount()`                | metrics for dashboards                       |
 
 All helpers accept generic `<TEvents extends EventMap>` so you can define your own event types and then use them with `SSEManager` and `SSEClient` methods.
 
@@ -326,7 +324,7 @@ The first parameter supports two formats for maximum flexibility:
    ```ts
    useEventSource<MyEvents>({
      url: "/api/sse",
-     query: { user_id: userId, channel: "notifications" },
+     query: {user_id: userId, channel: "notifications"},
    });
    // Results in: /api/sse?user_id=userId&channel=notifications
    ```
@@ -385,8 +383,8 @@ Below are some examples of how to integrate the SSE server-side API into backend
 ### Webhook handler
 
 ```ts
-import { SSEManager } from "@/lib/sse/server";
-import type { SSEvents } from "@/types/events";
+import {SSEManager} from "@/lib/sse/server";
+import type {SSEvents} from "@/types/events";
 
 export async function POST(req: Request) {
   const payload = await req.json(); // Stripe event
@@ -401,9 +399,9 @@ export async function POST(req: Request) {
 ### Background job
 
 ```ts
-import { cron } from "node-cron";
-import { SSEManager } from "@/lib/sse/server";
-import type { SSEvents } from "@/types/events";
+import {cron} from "node-cron";
+import {SSEManager} from "@/lib/sse/server";
+import type {SSEvents} from "@/types/events";
 
 cron("0 0 * * *", async () => {
   await SSEManager.default.broadcast<SSEvents>("notification", {

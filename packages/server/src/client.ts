@@ -1,12 +1,12 @@
 import * as crypto from "crypto";
-import type { ServerEvent, EventMap } from "./types";
+import type {EventMap, ServerEvent} from "./types";
 
 /**
  * Options for the SSE client.
  */
 export interface SSEClientOptions {
-  /** Optional user ID associated with this client */
-  userId?: string | null;
+  /** Enable or disable logging (default: false) */
+  logging?: boolean;
 }
 
 /**
@@ -19,16 +19,14 @@ export interface SSEClientOptions {
 export class SSEClient<TEvents extends EventMap = EventMap> {
   private readonly writer: WritableStreamDefaultWriter<Uint8Array>;
   private readonly encoder = new TextEncoder();
+  private readonly opts: SSEClientOptions;
   private heartbeat: NodeJS.Timeout | null = null;
   private closed = false;
 
   //#region Public properties
 
   /** Unique identifier for this SSE client */
-  public readonly id = crypto.randomUUID();
-
-  /** Optional user ID associated with this client */
-  public readonly userId: string | null = null;
+  public readonly sessionId = crypto.randomUUID();
 
   /** Readable stream for this client's SSE messages */
   public readonly readable: ReadableStream<Uint8Array>;
@@ -39,10 +37,10 @@ export class SSEClient<TEvents extends EventMap = EventMap> {
    * Creates a new SSE client.
    * @param options Options for the SSE client.
    */
-  constructor(options?: SSEClientOptions) {
+  constructor(options: SSEClientOptions = {}) {
     const stream = new TransformStream<Uint8Array, Uint8Array>();
 
-    this.userId = options?.userId ?? null;
+    this.opts = options;
     this.writer = stream.writable.getWriter();
     this.readable = stream.readable;
   }
@@ -54,7 +52,7 @@ export class SSEClient<TEvents extends EventMap = EventMap> {
    * @returns A promise that resolves when the event has been sent.
    */
   send(evt: ServerEvent<TEvents>): Promise<void> {
-    console.log(`Sending event to client ${this.id}:`, evt);
+    console.log(`Sending event to client ${this.sessionId}:`, evt);
     return this.writeRaw(this.formatMessage(evt));
   }
 
@@ -73,13 +71,11 @@ export class SSEClient<TEvents extends EventMap = EventMap> {
    */
   startHeartbeat(ms = 15000): void {
     this.stopHeartbeat();
-    console.log(
-      `Starting heartbeat for client ${this.id} with interval ${ms}ms`,
-    );
+    console.log(`Starting heartbeat for client ${this.sessionId} with interval ${ms}ms`);
 
     this.heartbeat = setInterval(() => {
       this.ping()
-        .then(() => console.log(`Heartbeat ping sent for client ${this.id}`))
+        .then(() => console.log(`Heartbeat ping sent for client ${this.sessionId}`))
         .catch(() => this.close());
     }, ms);
   }
@@ -93,7 +89,7 @@ export class SSEClient<TEvents extends EventMap = EventMap> {
       clearInterval(this.heartbeat);
     }
     this.heartbeat = null;
-    console.log(`Heartbeat stopped for client ${this.id}`);
+    console.log(`Heartbeat stopped for client ${this.sessionId}`);
   }
 
   /**
@@ -122,7 +118,7 @@ export class SSEClient<TEvents extends EventMap = EventMap> {
       // already closed/aborted
     }
 
-    console.log(`SSE client connection closed: ${this.id}`);
+    console.log(`SSE client connection closed: ${this.sessionId}`);
   }
 
   /**
@@ -148,7 +144,7 @@ export class SSEClient<TEvents extends EventMap = EventMap> {
    * @returns The formatted SSE event as a Uint8Array.
    */
   private formatMessage(sseEvent: ServerEvent<TEvents>): Uint8Array {
-    const { event, data, id, retry } = sseEvent;
+    const {event, data, id, retry} = sseEvent;
 
     let chunk = "";
     if (id) chunk += `id: ${id}\n`;

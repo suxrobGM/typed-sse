@@ -1,13 +1,13 @@
-import { SSEClient, type SSEClientOptions } from "./client";
-import type { ServerEvent, EventMap } from "./types";
+import {SSEClient, type SSEClientOptions} from "./client";
+import type {EventMap, ServerEvent} from "./types";
 
 /**
  * Manages SSE client connections and event broadcasting.
  *
  * @example
- * const client = SSEManager.default.createClient({ userId: "user-id" });
+ * const client = SSEManager.default.createClient();
  * client.startHeartbeat();
- * SSEManager.default.sendToUser("user-id", { event: "message", data: "Hello!" });
+ * SSEManager.default.sendToClient("session-id", { event: "message", data: "Hello!" });
  * SSEManager.default.broadcast({ event: "global", data: "Broadcast message" });
  * client.close();
  */
@@ -15,10 +15,7 @@ export class SSEManager {
   private static defaultInstance: SSEManager;
 
   // clientId -> client
-  private readonly clientsById = new Map<string, SSEClient>(); // prettier-ignore
-
-  // userId -> set of clientIds
-  private readonly clientIdsByUser = new Map<string, Set<string>>();
+  private readonly clientsById = new Map<string, SSEClient>();
 
   /**
    * Get the default singleton instance.
@@ -31,13 +28,13 @@ export class SSEManager {
   }
 
   /**
-   * Create a new SSE client for a user.
+   * Create a new SSE client.
    * @param options Options for the SSE client.
    * @template TEvents The type of events to infer when sending messages.
    * @returns A new SSEClient instance.
    */
   createClient<TEvents extends EventMap = EventMap>(
-    sseOptions?: SSEClientOptions,
+    sseOptions: SSEClientOptions = {}
   ): SSEClient<TEvents> {
     const client = new SSEClient<TEvents>(sseOptions);
     this.addClient(client);
@@ -49,22 +46,10 @@ export class SSEManager {
    * @param client An instance of SSEClient to register.
    * @template TEvents The type of events to infer when sending messages.
    */
-  addClient<TEvents extends EventMap = EventMap>(
-    client: SSEClient<TEvents>,
-  ): void {
-    this.clientsById.set(client.id, client as SSEClient<EventMap>);
+  addClient<TEvents extends EventMap = EventMap>(client: SSEClient<TEvents>): void {
+    this.clientsById.set(client.sessionId, client as unknown as SSEClient<EventMap>);
 
-    // If client has a userId, add it to the user index
-    if (client.userId) {
-      let set = this.clientIdsByUser.get(client.userId);
-      if (!set) {
-        set = new Set<string>();
-        this.clientIdsByUser.set(client.userId, set);
-      }
-      set.add(client.id);
-    }
-
-    console.log(`SSE client added: ${client.id}, user: ${client.userId}`);
+    console.log(`SSE client added: ${client.sessionId}`);
   }
 
   /**
@@ -79,14 +64,6 @@ export class SSEManager {
 
     // Clean indexes first
     this.clientsById.delete(clientId);
-
-    if (client.userId) {
-      const set = this.clientIdsByUser.get(client.userId);
-      if (set) {
-        set.delete(clientId);
-        if (set.size === 0) this.clientIdsByUser.delete(client.userId);
-      }
-    }
 
     // Close the stream last
     await client.close();
@@ -112,7 +89,7 @@ export class SSEManager {
    */
   async sendToClient<TEvents extends EventMap = EventMap>(
     clientId: string,
-    event: ServerEvent<TEvents>,
+    event: ServerEvent<TEvents>
   ): Promise<void> {
     const client = this.clientsById.get(clientId);
     if (!client) {
@@ -120,37 +97,7 @@ export class SSEManager {
     }
 
     await client.send(event as ServerEvent<EventMap>);
-    console.log(
-      `Event sent to client: ${clientId}, event: ${event.event as string}`,
-    );
-  }
-
-  /**
-   * Send an event to all clients associated with a user.
-   * @param userId The ID of the user to send the event to.
-   * @param event The SSE event to send.
-   * @template TEvents The type of events to infer payload structure.
-   * @returns A promise that resolves when all clients have been notified.
-   */
-  async sendToUser<TEvents extends EventMap = EventMap>(
-    userId: string,
-    event: ServerEvent<TEvents>,
-  ): Promise<void> {
-    const ids = this.clientIdsByUser.get(userId);
-    if (!ids?.size) {
-      console.warn(`No clients found for user ID: ${userId}`);
-      return;
-    }
-
-    await Promise.all(
-      [...ids].map((cid) =>
-        this.clientsById.get(cid)?.send(event as ServerEvent<EventMap>),
-      ),
-    );
-
-    console.log(
-      `Event sent to user: ${userId}, event: ${event.event as string}`,
-    );
+    console.log(`Event sent to client: ${clientId}, event: ${event.event as string}`);
   }
 
   /**
@@ -159,13 +106,9 @@ export class SSEManager {
    * @template TEvents The type of events to infer payload structure.
    * @returns A promise that resolves when all clients have been notified.
    */
-  async broadcast<TEvents extends EventMap = EventMap>(
-    event: ServerEvent<TEvents>,
-  ): Promise<void> {
+  async broadcast<TEvents extends EventMap = EventMap>(event: ServerEvent<TEvents>): Promise<void> {
     await Promise.all(
-      [...this.clientsById.values()].map((c) =>
-        c.send(event as ServerEvent<EventMap>),
-      ),
+      [...this.clientsById.values()].map((c) => c.send(event as ServerEvent<EventMap>))
     );
     console.log(`Broadcast event: ${event.event as string}, data:`, event.data);
   }
@@ -176,13 +119,5 @@ export class SSEManager {
    */
   clientsCount(): number {
     return this.clientsById.size;
-  }
-
-  /**
-   * Get the number of unique users with connected clients.
-   * @returns The count of unique users.
-   */
-  usersCount(): number {
-    return this.clientIdsByUser.size;
   }
 }
