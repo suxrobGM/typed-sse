@@ -13,15 +13,36 @@
   "license": "MIT",
   "author": "Sukhrob Ilyosbekov",
   "type": "module",
-  "main": "index.ts",
-  "scripts": {
-    "build": "tsc"
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
   },
-  "dependencies": {
-    "react": "^19.1.1"
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsup",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=19"
   },
   "devDependencies": {
+    "@typed-sse/server": "^1.0.0",
     "@types/react": "^19.1.10",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.2"
   }
 }

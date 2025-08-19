@@ -1,4 +1,14 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "defaultProject": "@typed-sse/server"
+  "extends": "nx/presets/npm.json",
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["default", "^default"],
+      "outputs": ["{projectRoot}/dist", "{projectRoot}/build", "{projectRoot}/lib"]
+    },
+    "lint": {"inputs": ["default"]},
+    "test": {"inputs": ["default", "^default"]}
+  },
+  "release": {"projects": "all"}
 }

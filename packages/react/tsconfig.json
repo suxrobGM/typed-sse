@@ -1,32 +1,14 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    /* Base Options: */
-    "baseUrl": ".",
+    "rootDir": "src",
+    "outDir": "dist",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "target": "esnext",
-    "resolveJsonModule": true,
-    "moduleDetection": "force",
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-
-    /* Strictness */
-    "strict": true,
     "noUncheckedIndexedAccess": true,
-
-    /* Bundled projects */
-    "lib": ["dom", "dom.iterable", "ESNext"],
-    "noEmit": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "incremental": true,
-
-    /* Path Aliases */
-    "paths": {
-      "@/*": ["src/*"] // general imports from src
-    }
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.js"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.{ts,tsx}"],
+  "exclude": ["dist", "node_modules", "**/*.test.*"]
 }

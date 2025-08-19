@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "strict": true,
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@typed-sse/server": ["packages/server/src/index.ts"],
+      "@typed-sse/react": ["packages/react/src/index.ts"]
+    }
+  }
+}

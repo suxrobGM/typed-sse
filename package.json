@@ -1,5 +1,6 @@
 {
   "name": "typed-sse",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "homepage": "https://github.com/suxrobGM/typed-sse#readme",
