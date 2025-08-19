@@ -1,0 +1,32 @@
+{
+  "name": "typed-sse",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/suxrobGM/typed-sse#readme",
+  "bugs": {
+    "url": "https://github.com/suxrobGM/typed-sse/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suxrobGM/typed-sse.git"
+  },
+  "license": "MIT",
+  "author": "Sukhrob Ilyosbekov",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5",
+    "prettier": "^3.6.2",
+    "nx": "21.4.0"
+  }
+}

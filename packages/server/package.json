@@ -1,0 +1,24 @@
+{
+  "name": "@typed-sse/server",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/suxrobGM/typed-sse#readme",
+  "bugs": {
+    "url": "https://github.com/suxrobGM/typed-sse/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suxrobGM/typed-sse.git"
+  },
+  "license": "MIT",
+  "author": "Sukhrob Ilyosbekov",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  }
+}

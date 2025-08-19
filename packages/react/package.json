@@ -1,0 +1,27 @@
+{
+  "name": "@typed-sse/react",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/suxrobGM/typed-sse#readme",
+  "bugs": {
+    "url": "https://github.com/suxrobGM/typed-sse/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suxrobGM/typed-sse.git"
+  },
+  "license": "MIT",
+  "author": "Sukhrob Ilyosbekov",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10",
+    "typescript": "^5.9.2"
+  }
+}
